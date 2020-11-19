@@ -54,7 +54,7 @@ function Pages(db, parentPath="homepage", container=null, callback) {
       path.value = list.value;
       let loaded = await Load(e);
       if (!loaded) {
-        path.value = last;
+        path.value = "";
       }
     };
   };
@@ -72,10 +72,6 @@ function Pages(db, parentPath="homepage", container=null, callback) {
       return null;
     }
     unsaved = false;
-    if (['/', '/pages', '/templates'].includes(db.path(path.value).parse().path)) {
-      info.innerText = "This resource cannot be loaded in the editor.";
-      return null;
-    }
     content.value = "";
     above.value = "";
     below.value = "";
@@ -85,6 +81,10 @@ function Pages(db, parentPath="homepage", container=null, callback) {
     description.value = "";
     pubdate.value = "";
     photo.value = "";
+    if (['/', '/pages', '/templates'].includes(db.path(path.value).parse().path)) {
+      info.innerText = "This resource cannot be loaded in the editor.";
+      return null;
+    }
     return db.path(parentPath).path(path.value).get().then(async result=>{
       info.innerText = "Loaded";
       if (result.data.content) {
@@ -107,6 +107,7 @@ function Pages(db, parentPath="homepage", container=null, callback) {
       photo.value = "";
       title.value = "";
       content.value = "";
+      path.value = "";
     });
   };
 
