@@ -1,6 +1,6 @@
 'use strict';
 
-function Pages(db, parentPath="homepage", container=null, callback) {
+function Pages(db, parentPath="pages", container=null, callback) {
   const component = document.createElement('div');
   component.classList.add('component');
   component.classList.add('editor');

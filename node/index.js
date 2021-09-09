@@ -1,6 +1,6 @@
 'use strict';
 
-function Pages(db, template, parentPath="homepage", dynamicTemplating=false) {
+function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
 
   const getMenu = async () => {
     return await db.path(parentPath).path('menu').get().then(result=>{
