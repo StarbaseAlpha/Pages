@@ -65,15 +65,15 @@ function Pages(db, parentPath="pages", container=null, callback) {
   info.classList.add('info');
   component.appendChild(info);
 
-  const above = document.createElement('textarea');
-  above.value = "";
-  above.placeholder = "Above Content:";
-  component.appendChild(above);
-
   const content = document.createElement('textarea');
   content.value = "";
   content.placeholder = "Content:";
   component.appendChild(content);
+
+  const above = document.createElement('textarea');
+  above.value = "";
+  above.placeholder = "Above Content:";
+  component.appendChild(above);
 
   const below = document.createElement('textarea');
   below.value = "";
