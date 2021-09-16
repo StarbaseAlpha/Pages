@@ -4,39 +4,95 @@ function Pages(db, parentPath="pages", container=null, callback) {
   const component = document.createElement('div');
   component.classList.add('component');
   component.classList.add('editor');
-  component.innerHTML = `
-<form method="POST">
-<div>
-<select name="list" placeholder="Documents:" aria-label="Documents"><option value="">Documents:</option></select>
-<input name="path" value="" placeholder="Path:" aria-label="Path" />
-<input name="title" value="" placeholder="Title:" aria-label="Title" />
-<input name="description" value="" placeholder="Description:" aria-label="Description" />
-<input name="pubdate" value="" placeholder="Publish Date:" aria-label="Publish Date" />
-<input name="photo" value="" placeholder="Featured Photo:" aria-label="Featured Photo" />
-<input name="redirect" value="" placeholder="Redirect:" aria-label="Redirect" />
-<input name="template" value="" placeholder="Template:" aria-label="Template" />
-</div>
-<div>
-<button name="loadButton">📂 Load</button>
-<button name="deleteButton">🚫 Delete</button>
-<button name="saveButton">💾 Save</button>
-</div>
-<p name="info" aria-label="Information"></p>
-<textarea name="content" value="" placeholder="Content:" aria-label="Content" /></textarea>
-<textarea name="above" value="" placeholder="Above Content:" aria-label="Above Content" /></textarea>
-<textarea name="below" value="" placeholder="Below Content:" aria-label="Below Content" /></textarea>
-</form>
-`;
 
-  const {list, path, title, description, pubdate, photo, content, redirect, template, above, below, loadButton, deleteButton, saveButton} = component.getElementsByTagName('form')[0].elements;
-  const {info} = component.getElementsByTagName('form')[0].getElementsByTagName('p');
+  const list = document.createElement('select');
+  list.placeholder = "Documents:";
+  component.appendChild(list);
+
+  const documentsOption = document.createElement('option');
+  documentsOption.value = "Documents:";
+  documentsOption.innerText = "Documents:";
+  list.appendChild(documentsOption);
+
+  const path = document.createElement('input');
+  path.value = "";
+  path.placeholder = "Path:";
+  component.appendChild(path);
+
+  const title = document.createElement('input');
+  title.value = "";
+  title.placeholder = "Title:";
+  component.appendChild(title);
+
+  const description = document.createElement('input');
+  description.value = "";
+  description.placeholder = "Description:";
+  component.appendChild(description);
+
+  const pubdate = document.createElement('input');
+  pubdate.value = "";
+  pubdate.placeholder = "Publish Date:";
+  component.appendChild(pubdate);
+
+  const photo = document.createElement('input');
+  photo.value = "";
+  photo.placeholder = "Featured Photo:";
+  component.appendChild(photo);
+
+  const redirect = document.createElement('input');
+  redirect.value = "";
+  redirect.placeholder = "Redirect:";
+  component.appendChild(redirect);
+
+  const template = document.createElement('input');
+  template.value = "";
+  template.placeholder = "Template:";
+  component.appendChild(template);
+
+  const loadButton = document.createElement('button');
+  loadButton.innerText = "📂 Load";
+  component.appendChild(loadButton);
+
+  const deleteButton = document.createElement('button');
+  deleteButton.innerText = "🚫 Delete";
+  component.appendChild(deleteButton);
+
+  const saveButton = document.createElement('button');
+  saveButton.innerText = "💾 Save";
+  component.appendChild(saveButton);
+
+  const info = document.createElement('p');
+  info.classList.add('info');
+  component.appendChild(info);
+
+  const above = document.createElement('textarea');
+  above.value = "";
+  above.placeholder = "Above Content:";
+  component.appendChild(above);
+
+  const content = document.createElement('textarea');
+  content.value = "";
+  content.placeholder = "Content:";
+  component.appendChild(content);
+
+  const below = document.createElement('textarea');
+  below.value = "";
+  below.placeholder = "Below Content:";
+  component.appendChild(below);
+
   let unsaved = false;
 
   above.onchange = above.onpaste = above.onkeyup = below.onchange = below.onpaste = below.onkeyup = content.onpaste = content.onchange = content.onkeyup = title.onpaste = title.onchange = title.onkeyup = description.onpaste = description.onchange = description.onkeyup = pubdate.onkeyup = pubdate.onchange = pubdate.onpaste = photo.onchange = photo.onpaste = photo.onkeyup = redirect.onchange = redirect.onkeyup = redirect.onpaste = template.onchange = template.onkeyup = template.onpaste = path.onchange = path.onkeyup = path.onpaste = (e) => {
     unsaved = true;
   };
 
+  let refreshing = false;
+
   const refreshList = async () => {
+    if (refreshing) {
+      return null;
+    }
+    refreshing = true;
     list.innerHTML = "";
     let firstOption = document.createElement('option');
     firstOption.innerText = "Documents:";
@@ -57,6 +113,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
         path.value = "";
       }
     };
+    refreshing = false;
   };
 
   const handler = (e) => {
@@ -171,12 +228,18 @@ function Pages(db, parentPath="pages", container=null, callback) {
   saveButton.onclick = Save;
   deleteButton.onclick = Delete;
 
-  const hide = () => {
+  const hide = (doNotDisplay=false) => {
     component.classList.add('hidden');
+    if (doNotDisplay) {
+      component.style.display = "none";
+    }
   };
 
-  const show = async () => {
+  const show = async (displayType=null) => {
     component.classList.remove('hidden');
+    if (displayType) {
+      component.style.display = displayType.toString();
+    }
     await refreshList();
   };
 
