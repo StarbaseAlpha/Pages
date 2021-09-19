@@ -1,13 +1,10 @@
 'use strict';
-
 function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
-
   const getMenu = async () => {
     return await db.path(parentPath).path('menu').get().then(result=>{
       return result.data || {};
     }).catch(err=>{return {};});
   };
-
   const getTemplate = async (templateName) => {
     if (!dynamicTemplating || !templateName) {
       return null;
@@ -26,7 +23,6 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       return null;
     });
   };
-
   const getHTML = (template, data) => {
     let result = template({
       "title":data.title||'',
@@ -42,7 +38,25 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
     });
     return result;
   };
-
+  const isTextTypeFile = (value='',accepted=['txt','json','js','css']) => {
+    let ext = value.toString().split('.').slice(-1)[0].toLocaleLowerCase();
+    return accepted.includes(ext) ? ext : false;
+  }
+  const getContentType = (extention) => {
+    if (extention === 'txt') {
+      return "text/plain";
+    }
+    if (extention === 'json') {
+      return "application/json";
+    }
+    if (extention === 'js') {
+      return "application/javascript";
+    }
+    if (extention === 'css') {
+      return "text/css";
+    }
+    return false;
+  };
   const route = () => {
     return async (req, res, next) => {
       let exists = null;
@@ -51,6 +65,13 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       } else {
         exists = await db.path(parentPath).path('pages').path(req.path).get().catch(err=>{return null;});
       }
+      if (exists && exists.data && isTextTypeFile(exists.key)) {
+        let contentType = getContentType(isTextTypeFile(exists.key));
+        if (contentType) {
+          res.setHeader('content-type', contentType);
+          return res.send(exists.data.content||"");
+        }
+      }
       let dynamicTemplate = (exists && exists.data.template) ? await getTemplate(exists.data.template) : template;
       if (!dynamicTemplate) {
         dynamicTemplate = template;
@@ -58,27 +79,20 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       if (exists && (exists.data.above ||
       exists.data.below || exists.data.title ||
       exists.data.content || exists.data.redirect)) {
-
         if (exists.data.redirect) {
           return res.redirect(exists.data.redirect);
         }
         exists.data.menu = await getMenu();
         return res.send(getHTML(dynamicTemplate, exists.data));
       }
-
       let notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
       if (notfound && notfound.data.content) {
         notfound.data.menu = await getMenu();
         return res.status(404).send(getHTML(dynamicTemplate, notfound.data));
       }
-
       next();
-
     };
   };
-
   return {"express":route}
-
 }
-
 module.exports = Pages;
