@@ -1,10 +1,12 @@
 'use strict';
 function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
+
   const getMenu = async () => {
     return await db.path(parentPath).path('menu').get().then(result=>{
       return result.data || {};
     }).catch(err=>{return {};});
   };
+
   const getTemplate = async (templateName) => {
     if (!dynamicTemplating || !templateName) {
       return null;
@@ -23,6 +25,7 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       return null;
     });
   };
+
   const getHTML = (template, data) => {
     let result = template({
       "title":data.title||'',
@@ -38,10 +41,12 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
     });
     return result;
   };
+
   const isTextTypeFile = (value='',accepted=['txt','json','js','css']) => {
     let ext = value.toString().split('.').slice(-1)[0].toLocaleLowerCase();
     return accepted.includes(ext) ? ext : false;
   }
+
   const getContentType = (extention) => {
     if (extention === 'txt') {
       return "text/plain";
@@ -57,6 +62,7 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
     }
     return false;
   };
+
   const route = () => {
     return async (req, res, next) => {
       let exists = null;
@@ -87,12 +93,16 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       }
       let notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
       if (notfound && notfound.data.content) {
+        dynamicTemplate = (notfound && notfound.data.template) ? await getTemplate(notfound.data.template) : template;
         notfound.data.menu = await getMenu();
         return res.status(404).send(getHTML(dynamicTemplate, notfound.data));
       }
       next();
     };
   };
+
   return {"express":route}
+
 }
+
 module.exports = Pages;
