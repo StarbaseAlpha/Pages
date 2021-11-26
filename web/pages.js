@@ -34,6 +34,11 @@ function Pages(db, parentPath="pages", container=null, callback) {
   pubdate.placeholder = "Publish Date:";
   component.appendChild(pubdate);
 
+  const author = document.createElement('input');
+  author.value = "";
+  author.placeHolder = "Author:";
+  component.appendChild(author);
+
   const photo = document.createElement('input');
   photo.value = "";
   photo.placeholder = "Featured Photo:";
@@ -82,7 +87,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
 
   let unsaved = false;
 
-  above.onchange = above.onpaste = above.onkeyup = below.onchange = below.onpaste = below.onkeyup = content.onpaste = content.onchange = content.onkeyup = title.onpaste = title.onchange = title.onkeyup = description.onpaste = description.onchange = description.onkeyup = pubdate.onkeyup = pubdate.onchange = pubdate.onpaste = photo.onchange = photo.onpaste = photo.onkeyup = redirect.onchange = redirect.onkeyup = redirect.onpaste = template.onchange = template.onkeyup = template.onpaste = path.onchange = path.onkeyup = path.onpaste = (e) => {
+  above.onchange = above.onpaste = above.onkeyup = below.onchange = below.onpaste = below.onkeyup = content.onpaste = content.onchange = content.onkeyup = title.onpaste = title.onchange = title.onkeyup = description.onpaste = description.onchange = description.onkeyup = pubdate.onkeyup = pubdate.onchange = pubdate.onpaste = author.onkeyup = author.onchange = author.onpaste = photo.onchange = photo.onpaste = photo.onkeyup = redirect.onchange = redirect.onkeyup = redirect.onpaste = template.onchange = template.onkeyup = template.onpaste = path.onchange = path.onkeyup = path.onpaste = (e) => {
     unsaved = true;
   };
 
@@ -137,6 +142,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
     template.value = "";
     description.value = "";
     pubdate.value = "";
+    author.value = "";
     photo.value = "";
     if (['/', '/pages', '/templates'].includes(db.path(path.value).parse().path)) {
       info.innerText = "This resource cannot be loaded in the editor.";
@@ -150,6 +156,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
       title.value = result.data.title || "";
       description.value = result.data.description || "";
       pubdate.value = result.data.pubdate || "";
+      author.value = result.data.author || "";
       photo.value = result.data.photo || "";
       redirect.value = result.data.redirect || "";
       template.value = result.data.template || "";
@@ -161,6 +168,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
       info.innerText = err.message || "Error";
       description.value = "";
       pubdate.value = "";
+      author.value = "";
       photo.value = "";
       title.value = "";
       content.value = "";
@@ -178,6 +186,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
     data.title = title.value || "";
     data.description = description.value || "";
     data.pubdate = pubdate.value || "";
+    data.author = author.value || "";
     data.photo = photo.value || "";
     data.content = content.value || "";
     data.redirect = redirect.value || "";
@@ -208,6 +217,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
       title.value = "";
       description.value = "";
       pubdate.value = "";
+      author.value = "";
       photo.value = "";
       content.value = "";
       above.value = "";

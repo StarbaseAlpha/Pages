@@ -1,5 +1,9 @@
 'use strict';
-function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
+function Pages(db, parentPath="pages", runFunctionsKit=null) {
+
+  const defaultTemplate = (data)=>{
+    return `<!DOCTYPE html><title>${data.title}</title>${data.content}`;
+  }
 
   const getMenu = async () => {
     return await db.path(parentPath).path('menu').get().then(result=>{
@@ -8,7 +12,7 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
   };
 
   const getTemplate = async (templateName) => {
-    if (!dynamicTemplating || !templateName) {
+    if (!templateName) {
       return null;
     }
     return await db.path(parentPath).path('templates').path(templateName).get().then(result=>{
@@ -63,13 +67,29 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
     return false;
   };
 
+  const runCode = async (req, res, code, kit) => {
+    let func = new Function('req', 'res', 'kit', 'return' + '(' + code + ')(req, res, kit)');
+    return await func(req, res, kit);
+  };
+
   const route = () => {
     return async (req, res, next) => {
       let exists = null;
       if (db.path(req.path).parse().path === '/') {
         exists = await db.path(parentPath).path('pages').path('home').get().catch(err=>{return null;});
       } else {
-        exists = await db.path(parentPath).path('pages').path(req.path).get().catch(err=>{return null;});
+        if (runFunctionsKit) {
+          exists = await db.path(parentPath).path('functions').path(req.path).get().catch(err=>{return null;});
+        }
+        if (exists && exists.data && exists.data.content) {
+          return runCode(req, res, exists.data.content, runFunctionsKit).then(result=>{
+            res.json(result);
+          }).catch(err=>{
+            res.status(err.code||400).json({"code":err.code||400, "message":err.message||err.toString()||"Error!"});
+          });
+        } else {
+          exists = await db.path(parentPath).path('pages').path(req.path).get().catch(err=>{return null;});
+        }
       }
       if (exists && exists.data && isTextTypeFile(exists.key)) {
         let contentType = getContentType(isTextTypeFile(exists.key));
@@ -78,10 +98,7 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
           return res.send(exists.data.content||"");
         }
       }
-      let dynamicTemplate = (exists && exists.data.template) ? await getTemplate(exists.data.template) : template;
-      if (!dynamicTemplate) {
-        dynamicTemplate = template;
-      }
+      let dynamicTemplate = (exists && exists.data.template) ? await getTemplate(exists.data.template) : defaultTemplate;
       if (exists && (exists.data.above ||
       exists.data.below || exists.data.title ||
       exists.data.content || exists.data.redirect)) {
@@ -93,7 +110,7 @@ function Pages(db, template, parentPath="pages", dynamicTemplating=false) {
       }
       let notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
       if (notfound && notfound.data.content) {
-        dynamicTemplate = (notfound && notfound.data.template) ? await getTemplate(notfound.data.template) : template;
+        dynamicTemplate = (notfound && notfound.data.template) ? await getTemplate(notfound.data.template) : defaultTemplate;
         notfound.data.menu = await getMenu();
         return res.status(404).send(getHTML(dynamicTemplate, notfound.data));
       }
