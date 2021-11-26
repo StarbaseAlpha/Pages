@@ -35,6 +35,7 @@ function Pages(db, parentPath="pages", runFunctionsKit=null) {
       "title":data.title||'',
       "description":data.description||'',
       "pubdate":data.pubdate||'',
+      "author":data.author||'',
       "photo":data.photo||'',
       "above":data.above||'',
       "menu":data.menu||'',
