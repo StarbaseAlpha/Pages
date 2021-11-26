@@ -144,7 +144,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
     pubdate.value = "";
     author.value = "";
     photo.value = "";
-    if (['/', '/pages', '/templates'].includes(db.path(path.value).parse().path)) {
+    if (['/', '/pages', '/templates', '/functions'].includes(db.path(path.value).parse().path)) {
       info.innerText = "This resource cannot be loaded in the editor.";
       return null;
     }
@@ -178,7 +178,8 @@ function Pages(db, parentPath="pages", container=null, callback) {
 
   const Save = async (e) => {
     e.preventDefault();
-    if (['/', 'pages', '/templates'].includes(db.path(path.value).parse().path)) {
+    info.innerText = "Saving...";
+    if (['/', 'pages', '/templates', '/functions'].includes(db.path(path.value).parse().path)) {
       info.innerText = "This resource cannot be changed in the editor.";
       return null;
     }
@@ -205,7 +206,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
 
   const Delete = async (e) => {
     e.preventDefault();
-    if (['/', '/pages', '/menu', '/templates'].includes(db.path(path.value).parse().path)) {
+    if (['/', '/pages', '/menu', '/templates', '/functions'].includes(db.path(path.value).parse().path)) {
       info.innerText = "This resource cannot be changed in the editor.";
       return null;
     }
