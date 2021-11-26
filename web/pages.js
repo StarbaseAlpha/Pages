@@ -36,7 +36,7 @@ function Pages(db, parentPath="pages", container=null, callback) {
 
   const author = document.createElement('input');
   author.value = "";
-  author.placeHolder = "Author:";
+  author.placeholder = "Author:";
   component.appendChild(author);
 
   const photo = document.createElement('input');
