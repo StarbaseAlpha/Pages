@@ -1,6 +1,6 @@
 {
   "name": "@starbase/pages",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Starbase Pages",
   "main": "index.js",
   "browser": "pages.min.js",
@@ -19,6 +19,10 @@
     "Alpha",
     "CMS"
   ],
+  "dependencies":{
+    "express": "latest",
+    "compression": "latest"
+  },
   "author": "Mike Fuller",
   "license": "MIT",
   "bugs": {
