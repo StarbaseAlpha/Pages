@@ -2,7 +2,13 @@
 function Pages(db, parentPath="pages", runFunctionsKit=null) {
 
   const defaultTemplate = (data)=>{
-    return `<!DOCTYPE html><title>${data.title}</title>${data.content}`;
+    return `<!DOCTYPE html>
+<title>${data.title}</title>
+<meta name="viewport" content="width=device-width">
+<meta name="description" content="${data.description}">
+${data.above}
+${data.content}
+${data.below}`;
   }
 
   const getMenu = async () => {
