@@ -169,7 +169,7 @@ ${data.below}`;
         return res.send(getHTML(dynamicTemplate, exists.data));
       }
       let notfound = await getCache(db.path(parentPath).path('pages').path('404').parse().path);
-      if (notfound) {
+      if (!notfound) {
         notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
         await writeCache(db.path(parentPath).path('pages').path('404').parse().path, notfound);
       }
