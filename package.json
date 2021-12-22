@@ -1,6 +1,6 @@
 {
   "name": "@starbase/pages",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Starbase Pages",
   "main": "index.js",
   "browser": "pages.min.js",
