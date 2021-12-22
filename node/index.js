@@ -171,7 +171,9 @@ ${data.below}`;
       let notfound = await getCache(db.path(parentPath).path('pages').path('404').parse().path);
       if (!notfound) {
         notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
-        await writeCache(db.path(parentPath).path('pages').path('404').parse().path, notfound);
+        if (notfound) {
+          await writeCache(db.path(parentPath).path('pages').path('404').parse().path, notfound);
+        }
       }
       if (notfound && notfound.data.content) {
         dynamicTemplate = (notfound && notfound.data.template) ? await getTemplate(notfound.data.template) : defaultTemplate;
