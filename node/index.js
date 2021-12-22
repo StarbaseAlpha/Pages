@@ -1,5 +1,5 @@
 'use strict';
-function Pages(db, parentPath="pages", runFunctionsKit=null) {
+function Pages(db, parentPath="pages", runFunctionsKit=null, cacheDB=null, cacheTTL=30000) {
 
   const defaultTemplate = (data)=>{
     return `<!DOCTYPE html>
@@ -11,29 +11,66 @@ ${data.content}
 ${data.below}`;
   }
 
+  const getCache = async (path) => {
+    if (!cacheDB) {
+      return null;
+    }
+    let cached = await cacheDB.path(path).get().catch(err=>{return null;});
+    if (cached && cached.data && cached.data.doc) {
+      if (cached.data.expires > Date.now()) {
+        return cached.data.doc;
+      } else {
+        await cacheDB.path(path).del();
+        return null;
+      }
+    }
+  };
+
+  const writeCache = async (path, doc) => {
+    if (!cacheDB) {
+      return null;
+    }
+    await cacheDB.path(path).put({
+      "doc":doc,
+      "expires": parseInt(parseInt(Date.now()) + parseInt(cacheTTL))
+    });
+    return true;
+  };
+
   const getMenu = async () => {
-    return await db.path(parentPath).path('menu').get().then(result=>{
-      return result.data || {};
-    }).catch(err=>{return {};});
+    let cached = await getCache(db.path(parentPath).path('menu').parse().path);
+    if (cached && cached.data) {
+      return cached.data;
+    }
+    let menu = await db.path(parentPath).path('menu').get().catch(err=>{return null;});
+    await writeCache(db.path(parentPath).path('menu').parse().path, menu);
+    if (menu.data) {
+      return menu.data;
+    } else {
+      return {};
+    }
   };
 
   const getTemplate = async (templateName) => {
     if (!templateName) {
       return null;
     }
-    return await db.path(parentPath).path('templates').path(templateName).get().then(result=>{
-      if (!result.data || !result.data.content) {
-        return null;
+    let result = await getCache(db.path(parentPath).path('templates').path(templateName).parse().path); 
+    if (!result) {
+      result = await db.path(parentPath).path('templates').path(templateName).get().catch(err=>{});
+      if (result && result.data) {
+        await writeCache(db.path(parentPath).path('templates').path(templateName).parse().path, result);
       }
-      let dynamicTemplate = new Function('return ' + result.data.content||'' + ';')();
-      if (typeof dynamicTemplate === 'function') {
-        return dynamicTemplate;
-      } else {
-        return null;
-      }
-    }).catch(err=>{
+    }
+    if (!result || !result.data || !result.data.content) {
       return null;
-    });
+    }
+    let dynamicTemplate = new Function('return ' + result.data.content||'' + ';')();
+    if (typeof dynamicTemplate === 'function') {
+      return dynamicTemplate;
+    } else {
+      return null;
+    }
   };
 
   const getHTML = (template, data) => {
@@ -83,10 +120,22 @@ ${data.below}`;
     return async (req, res, next) => {
       let exists = null;
       if (db.path(req.path).parse().path === '/') {
-        exists = await db.path(parentPath).path('pages').path('home').get().catch(err=>{return null;});
+        exists = await getCache(db.path(parentPath).path('pages').path('home').parse().path);
+        if (!exists) {
+          exists = await db.path(parentPath).path('pages').path('home').get().catch(err=>{return null;});
+          if (exists) {
+            await writeCache(db.path(parentPath).path('pages').path('home').parse().path, exists);
+          }
+        }
       } else {
         if (runFunctionsKit) {
-          exists = await db.path(parentPath).path('functions').path(req.path).get().catch(err=>{return null;});
+          exists = await getCache(db.path(parentPath).path('functions').path(req.path).parse().path);
+          if (!exists) {
+            exists = await db.path(parentPath).path('functions').path(req.path).get().catch(err=>{return null;});
+            if (exists) {
+              await writeCache(db.path(parentPath).path('functions').path(req.path).parse().path, exists);
+            }
+          }
         }
         if (exists && exists.data && exists.data.content) {
           return runCode(req, res, exists.data.content, runFunctionsKit).then(result=>{
@@ -95,7 +144,11 @@ ${data.below}`;
             res.status(err.code||400).json({"code":err.code||400, "message":err.message||err.toString()||"Error!"});
           });
         } else {
-          exists = await db.path(parentPath).path('pages').path(req.path).get().catch(err=>{return null;});
+          exists = await getCache(db.path(parentPath).path('pages').path(req.path).parse().path);
+          if (!exists) {
+            exists = await db.path(parentPath).path('pages').path(req.path).get().catch(err=>{return null;});
+            await writeCache(db.path(parentPath).path('pages').path(req.path).parse().path, exists);
+          }
         }
       }
       if (exists && exists.data && isTextTypeFile(exists.key)) {
@@ -115,7 +168,11 @@ ${data.below}`;
         exists.data.menu = await getMenu();
         return res.send(getHTML(dynamicTemplate, exists.data));
       }
-      let notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
+      let notfound = await getCache(db.path(parentPath).path('pages').path('404').parse().path);
+      if (notfound) {
+        notfound = await db.path(parentPath).path('pages').path('404').get().catch(err=>{return null;});
+        await writeCache(db.path(parentPath).path('pages').path('404').parse().path, notfound);
+      }
       if (notfound && notfound.data.content) {
         dynamicTemplate = (notfound && notfound.data.template) ? await getTemplate(notfound.data.template) : defaultTemplate;
         notfound.data.menu = await getMenu();
