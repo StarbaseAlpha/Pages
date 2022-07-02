@@ -44,7 +44,7 @@ ${data.below}`;
     }
     let menu = await db.path(parentPath).path('menu').get().catch(err=>{return null;});
     await writeCache(db.path(parentPath).path('menu').parse().path, menu);
-    if (menu.data) {
+    if (menu && menu.data) {
       return menu.data;
     } else {
       return {};
