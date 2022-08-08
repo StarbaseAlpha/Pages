@@ -1,5 +1,5 @@
 'use strict';
-function Pages(db, parentPath="pages", runFunctionsKit=null, cacheDB=null, cacheTTL=30000) {
+function Pages(db, parentPath="pages", runFunctionsKit=null, cacheDB=null, cacheTTL=5000) {
 
   const defaultTemplate = (data)=>{
     return `<!DOCTYPE html>
@@ -90,7 +90,7 @@ ${data.below}`;
     return result;
   };
 
-  const isTextTypeFile = (value='',accepted=['txt','json','js','css']) => {
+  const isTextTypeFile = (value='',accepted=['txt','json','js','css','xml']) => {
     let ext = value.toString().split('.').slice(-1)[0].toLocaleLowerCase();
     return accepted.includes(ext) ? ext : false;
   }
@@ -107,6 +107,9 @@ ${data.below}`;
     }
     if (extention === 'css') {
       return "text/css";
+    }
+    if (extention === 'xml') {
+      return "application/xml";
     }
     return false;
   };
